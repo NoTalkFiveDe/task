@@ -48,12 +48,19 @@ GitHub 的默认分支现在变成了 `main` 而不是 `master`，望周知。
 ### 1. 命名规范
 所有的文件名都推荐使用*小写字母*，分隔单词推荐使用*短横线*“-”，不推荐使用*空格*和*下划线*“_”，更不应该出现*中文*，原因参见[关于大小写和空格的提示](https://developer.mozilla.org/zh-CN/docs/Learn/Getting_started_with_the_web/Dealing_with_files#%E5%85%B3%E4%BA%8E%E5%A4%A7%E5%B0%8F%E5%86%99%E5%92%8C%E7%A9%BA%E6%A0%BC%E7%9A%84%E6%8F%90%E7%A4%BA)。  
 
+例外：`README.md`  
+
 ### 2. 文档规范
 请尽量多使用 `README.md` 文件，并为之编写文档，减少成员之间的沟通成本，就像我在每个*任务目录*下都放了一个空的 `README.md`，虽然现在没什么用，但总有一天可能会用上。  
 
 文案排版请参照[中文文案排版指北](https://github.com/sparanoid/chinese-copywriting-guidelines/blob/master/README.zh-CN.md#%E4%B8%AD%E6%96%87%E6%96%87%E6%A1%88%E6%8E%92%E7%89%88%E6%8C%87%E5%8C%97)，有好的建议也可以在此处添加。  
 
 注意在文档里添加适当的空行增加可读性，一般一个空行就足够了。  
+
+### 3. Markdown 规范（待完善）
+尽量不要使用一级标题，一级标题通常用于描述整个文件。  
+
+建议以二级标题为主，三级标题为辅，通常也够用了。  
 
 ## 仓库目录结构
 1. [task-1（安装 Linux 操作系统）](task-1)  
