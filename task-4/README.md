@@ -5,7 +5,7 @@
 
 ## 目录结构
 ### 文件：
-[任务要求](task-04-demand.pdf)  
+[任务要求（task-04-demand.pdf）](task-04-demand.pdf)  
 
 ### 目录：
 1. yk（杨凯）  
