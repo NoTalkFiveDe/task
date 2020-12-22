@@ -27,8 +27,10 @@ def char_shift(ch: str, shift: int = 0):
     return chr(ord(ch) + shift)
 
 def letter_shift(ch: str, shift: int = 0):
-    if not is_letter(ch):
+    if not is_char(ch):
         return ' '
+    if not is_letter(ch):
+        return ch
     shift = update_shift(shift)
     code = ord(ch) + shift
     if ((is_lower(ch) and code > _z) or (is_upper(ch) and code > _Z)):
