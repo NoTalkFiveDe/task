@@ -49,3 +49,12 @@ def sentence_shift(s: str, shift: int = 0):
     for i in range(len(s)):
         arr[i] = letter_shift(arr[i], shift)
     return ''.join(arr)
+
+def is_digit(ch: str):
+    if not is_char(ch):
+        return False
+    code = ord(ch)
+    return 30 <= code and code <= 39
+
+def text_analyze(s: str):
+    l, r = 0x4e00, 0x9fa5
