@@ -1,8 +1,5 @@
 ## 凯撒密码
-想在命令行玩凯撒密码？试试下面的命令：  
-```bash
-py caesar_code.py
-```
+想在命令行玩凯撒密码？试试运行 `caesar_code.py`。
 
 ## 简介
 Python 的特点：
