@@ -13,12 +13,11 @@ var readline = require('readline')
 var rl = readline.createInterface({
 			input:process.stdin,
 			output: process.stdout
-			});
+});
+
 //----------------------------自定义函数-------------------------
 
 
-
-//自定义输出
 function prt(a){
           console.log(a);
 }
@@ -33,21 +32,39 @@ function showall(a){
 			prt(form+player.name+form);
 		else if(a[x] == 'bag'){
 			prt(form+a[x]+form);
-			prt(' \t'+bag.__+'/'+limit);
+			prt(' \t'+bag._____+'/'+limit);
 		}
 		else if(a[x] == 'shop'){
 			prt(form+a[x]+form);
-			prt('[funds:'+player.money+ ']');
+			prt('[Your $:'+player.money+ ']');
 			prt(' \t$');
 		}
 		else if(typeof(a[x]) != 'function'){
 			prt( x +'\t'+a[x]);
 		}
-//		else
-//			prt(x);
+
 	}
 	prt(form+'----'+form);
 };
+
+function caesar(str){
+	prt(rot13(str));
+}
+
+function rot13(str) {
+    var newstr = [];
+    for(var i =0 ;i<str.length;++i){
+      if(str.charCodeAt(i)<65||str.charCodeAt(i)>90){
+        newstr.push(str[i]);
+      }else if(str.charCodeAt(i)<=77){
+        newstr.push(String.fromCharCode(str.charCodeAt(i)+13));
+      }else{
+        newstr.push(String.fromCharCode(str.charCodeAt(i)-13));
+      }
+  }
+  return newstr.join('');
+}
+	
 //----------------------------对象----------------------------
 
 //玩家
@@ -62,27 +79,29 @@ var player = {
 
 //背包
 var bag = {
-//name-number
+
 	tag : 'bag',
         hat:0,
         shoes:0,
         cloth:0,
 	pants:0,
-	__:1,
+	_____:0,
 };
 
+//商店
 var shop = {
-//name-price
+
 	tag : 'shop',
 	hat:2,
 	shoes:3,
 	cloth:4,
 	pants:4,
+
 	buy:function(str){
 		if((player.money - shop[str]) >= 0){
 			player.money -= shop[str];
 			bag[str] += 1 ;
-			bag.__ += 1;
+			bag._____ += 1;
 			prtx('purchase success.');
 		}
 		else{
@@ -90,8 +109,6 @@ var shop = {
 		}
 	},
 
-	//sell: function(){;},
-	
 	work: function(){
 		player.hp -=10;
 		player.mp -=10;
@@ -107,11 +124,13 @@ var limit = 100 ;//[可选项]物品栏上限
 
 var ipt;//用于接收输入
 
-var form = '-------------';
+var code;
+
+var form = '-------------';//用于绘制表头
 
 var shoplist = `b) buy		w) work`;
 
-//菜单 '-' x 13
+//菜单
 const menu =
 ` ----------choose menu------------
  |	1) status	2) bag   |
@@ -127,7 +146,7 @@ prt(menu);
 rl.on('line',function(line) {
 	
 	if(player.hp <= 0){
-		prt('Your health is:'+player.hp);
+		prt('Your health: '+player.hp);
 		prt('ICU welcom');
 		rl.close();
 	}
@@ -147,7 +166,10 @@ rl.on('line',function(line) {
 			break;
 		}
 		case '4':  {
-			ceasa();
+			prtx('lower will not change UPPER WILL CHANGE');
+			rl.once('buySth',function(){
+				caesar(ipt);
+			});
 			break;
 		}
 		case '0':  {
@@ -158,6 +180,8 @@ rl.on('line',function(line) {
 			prt(menu);
 			break;
 		}
+
+
 		case 'b':{
 			prtx('input the ITEM NAME to Buy');
 			rl.once('buySth',function(){
