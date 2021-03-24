@@ -1,27 +1,30 @@
-var http = require('http');
+const net = require('net');
 
-http.createServer(function(req, res) {
-    if (req.method == "GET") {
-        writeWeb(req, res);
-    } else if (req.method == "POST") {
-        res.write('POST successed');
-        console.log(req);
-    } else {
-        writeWeb(req, res);
-    }
-	res.end();
-}).listen(1337, '127.0.0.1');
+const server = net.createServer((c) => {
+    // 'connection' 监听器。
+    console.log('客户端已连接');
+    c.on('end', () => {
+        console.log('客户端已断开连接');
+    });
+    c.write('你好\r\n');
+    // c.pipe(c);
+    c.on('data', (data) => {
+        console.log('client: ' + data.toString());
+        c.write('message from client: ' + data.toString());
+        // c.write('recieved\r\n');
+    });
+    c.on('end', () => {
 
-function writeWeb(req, res) {
-	res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write('<html>');
-    res.write('<head>');
-    res.write('</head>');
-    res.write('<body>');
-	res.write('<form method="POST">');
-    res.write('username:<input><input type="submit">');
-    res.write('</form>');
-    res.write('</body>');
-    res.write('</html>');
-}
-console.log('running at http://127.0.0.1:1337/');
+    });
+});
+
+
+// 异常处理
+server.on('error', (err) => {
+    throw err;
+});
+
+// 监听即启动服务
+server.listen(8124, () => {
+    console.log('服务器已启动');
+});
