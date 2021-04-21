@@ -10,4 +10,4 @@ curl -X GET -H "Content-Type: application/json" -d '{
             "sender": "0"
         }
     ]
-}' "http://localhost:5000/mine"
+}' "http://localhost:$1/mine"

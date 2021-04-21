@@ -1,7 +1,10 @@
 import hashlib
 import json
+import sys
 from time import time
-from textwrap import dedent
+import requests
+# from textwrap import dedent
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from flask import Flask, jsonify, request
@@ -11,9 +14,20 @@ class BlockChain(object):
     def __init__(self):
         self.chain = []
         self.current_transactions = []
+        self.nodes = set()
 
         # 创建创始区块
         self.new_block(previous_hash=1, proof=100)
+
+    def register_node(self, address):
+        """
+        Add a new node to the list of nodes
+        :param address: <str> Address of nodes. Eg. 'http://192.168.0.5:5000'
+        :return: None
+        """
+
+        parsed_url = urlparse(address)
+        self.nodes.add(parsed_url.netloc)
 
     def new_block(self, proof, previous_hash=None):
         """
@@ -93,6 +107,66 @@ class BlockChain(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == '0000'
 
+    def valid_chain(self, chain):
+        """
+        判断给定的区块链是否有效
+        :param chain: <list> A blockchain
+        :return: True if valid, False if not.
+        """
+
+        last_block = chain[0]
+        current_index = 1
+
+        while current_index < len(chain):
+            block = chain[current_index]
+            print(f'{last_block}')
+            print(f'{block}')
+            print('\n---------------------\n')
+
+            # 检查散列值
+            if block['previous_hash'] != self.hash(last_block):
+                return False
+
+            # 检查计算量证明
+            if not self.valid_proof(last_block['proof'], block['proof']):
+                return False
+
+            last_block = block
+            current_index += 1
+
+        return True
+
+    def resolve_conflicts(self):
+        """
+        这是我们用来实现共识的算法，解决冲突的方法是用网络中最长的区块链替换当前链
+        :return: <bool> True if our chain was replaced, False if not.
+        """
+
+        neighbours = self.nodes
+        new_chain = None
+
+        # 只需要找比我们长的区块链
+        max_length = len(self.chain)
+
+        for node in neighbours:
+            response = requests.get(f'http://{node}/chain')
+            if response.status_code == 200:
+                response_json = response.json()
+                length = response_json['length']
+                chain = response_json['chain']
+
+                if length > max_length and self.valid_chain(chain):
+                    # 时刻更新最大长度，避免不必要的判断
+                    max_length = length
+                    new_chain = chain
+
+        # print('new_chain', new_chain)
+        if new_chain:
+            self.chain = new_chain
+            return True
+
+        return False
+
 
 # 实例化结点
 app = Flask(__name__)
@@ -123,10 +197,12 @@ def new_transaction():
         return 'Missing values', 400
 
     # 创建一个新交易
-    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    index = blockchain.new_transaction(
+        values['sender'], values['recipient'], values['amount'])
 
     response = {'message': f'Transaction will be added to Block {index}'}
     return jsonify(response), 201
+
 
 @app.route('/mine', methods=['GET'])
 def mine():
@@ -155,5 +231,42 @@ def mine():
     return jsonify(response), 200
 
 
+@app.route('/nodes/register', methods=['POST'])
+def register_nodes():
+    values = request.get_json()
+
+    nodes = values.get('nodes')
+    if nodes is None:
+        return "Error: Please supply a valid list of nodes", 400
+
+    for node in nodes:
+        blockchain.register_node(node)
+
+    response = {
+        'message': 'New nodes have been added',
+        'total_nodes': list(blockchain.nodes),
+    }
+    return jsonify(response), 201
+
+
+@app.route('/nodes/resolve', methods=['GET'])
+def consensus():
+    replaced = blockchain.resolve_conflicts()
+
+    if replaced:
+        response = {
+            'message': 'Our chain was replaced',
+            'new_chain': blockchain.chain
+        }
+    else:
+        response = {
+            'message': 'Our chain is authoritative',
+            'chain': blockchain.chain
+        }
+
+    return jsonify(response), 200
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = 5000 if len(sys.argv) == 1 else int(sys.argv[1])
+    app.run(host='0.0.0.0', port=port)
