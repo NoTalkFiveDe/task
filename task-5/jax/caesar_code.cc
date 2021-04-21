@@ -7,7 +7,6 @@
  */
 
 #include <iostream>
-using namespace std;    // TODO: remove using namespace
 
 inline char code(char ch, int shift) {
     shift = ((shift % 26) + 26) % 26;   // in case of negative shift and overflow
@@ -20,11 +19,11 @@ inline char code(char ch, int shift) {
     }
 }
 
-string code(const string &s, int shift) {
-    string ret = s;
+std::string code(const std::string &s, int shift) {
+    std::string ret = s;
     shift %= 26;    // in case of overflow
     shift = (shift + 26) % 26;  // in case of negetive shift
-    cout << "equivalent shift = " << shift << endl;
+    std::cout << "equivalent shift = " << shift << std::endl;
     // use anonymous function to avoid redundant % 26 operation
     // maybe you could use a private function _safe_code instead
     auto code = [&](char ch) {
@@ -43,9 +42,8 @@ string code(const string &s, int shift) {
 }
 
 int main(const int argc, const char *argv[]) {
-    // TODO: write a exception here to handle parameter missing
-    const string &s = argv[1];
-    const int shift = stoi(argv[2]);
+    const std::string &s = argv[1];
+    const int shift = std::stoi(argv[2]);
 
-   cout << code(s, shift) << endl; 
+   std::cout << code(s, shift) << std::endl; 
 }
