@@ -1,3 +1,11 @@
+# Description: try to mine a block on localhost:port
+# Usage: mine.sh [port]
+
+port=5000
+if [ $# -eq 1 ]
+then port=$1
+fi
+
 curl -X GET -H "Content-Type: application/json" -d '{
     "hash": "a4a43b8ea0f944d391bef97cd405250c12345",
     "index": 4,
@@ -10,4 +18,4 @@ curl -X GET -H "Content-Type: application/json" -d '{
             "sender": "0"
         }
     ]
-}' "http://localhost:$1/mine"
+}' "http://localhost:$port/mine"

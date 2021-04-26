@@ -1,6 +1,7 @@
 import hashlib
 import json
 import sys
+import os
 from time import time
 import requests
 # from textwrap import dedent
@@ -9,6 +10,10 @@ from uuid import uuid4
 
 from flask import Flask, jsonify, request
 
+# 为当前结点生成一个全局唯一的地址
+node_identifier = str(uuid4()).replace('-', '')
+port = 5000
+db_folder = ''
 
 class BlockChain(object):
     def __init__(self):
@@ -43,6 +48,14 @@ class BlockChain(object):
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
+        
+        # save new block to json file
+        if os.system(f'ls {db_folder}') != 0:
+            os.system(f'mkdir {db_folder}')
+        file = f'./{db_folder}/block-{block["index"]}.json'
+        f = open(file, 'w');
+        json.dump(block, f, sort_keys=True)
+        f.close()
 
         # 重置当前的交易列表
         self.current_transactions = []
@@ -163,110 +176,115 @@ class BlockChain(object):
         # print('new_chain', new_chain)
         if new_chain:
             self.chain = new_chain
+            for i in range(len(self.chain)):
+                f = open(f'{db_folder}/block-{i + 1}.json', 'w')
+                json.dump(self.chain[i], f, sort_keys=True)
+                f.close()
+
             return True
 
         return False
 
 
-# 实例化结点
-app = Flask(__name__)
-
-# 为当前结点生成一个全局唯一的地址
-node_identifier = str(uuid4()).replace('-', '')
-
-# 实例化区块链
-blockchain = BlockChain()
-
-
-@app.route('/chain', methods=['GET'])
-def full_chain():
-    response = {
-        'chain': blockchain.chain,
-        'length': len(blockchain.chain),
-    }
-    return jsonify(response), 200
-
-
-@app.route('/transactions/new', methods=['POST'])
-def new_transaction():
-    values = request.get_json()
-
-    # 检查要求的域是否都有
-    required = ['sender', 'recipient', 'amount']
-    if not all(k in values for k in required):
-        return 'Missing values', 400
-
-    # 创建一个新交易
-    index = blockchain.new_transaction(
-        values['sender'], values['recipient'], values['amount'])
-
-    response = {'message': f'Transaction will be added to Block {index}'}
-    return jsonify(response), 201
-
-
-@app.route('/mine', methods=['GET'])
-def mine():
-    # 我们需要运行工作量证明算法来得到下一个工作量证明
-    last_block = blockchain.last_block
-    last_proof = last_block['proof']
-    proof = blockchain.proof_of_work(last_proof)
-
-    # 我们必须为找到工作量证明获得奖励
-    # sender 为 '0' 表示该结点已经挖到了一个新的币
-    blockchain.new_transaction(
-        sender='0',
-        recipient=node_identifier,
-        amount=1,
-    )
-
-    block = blockchain.new_block(proof)
-
-    response = {
-        'message': 'New Block Forged',
-        'index': block['index'],
-        'transactions': block['transactions'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash'],
-    }
-    return jsonify(response), 200
-
-
-@app.route('/nodes/register', methods=['POST'])
-def register_nodes():
-    values = request.get_json()
-
-    nodes = values.get('nodes')
-    if nodes is None:
-        return "Error: Please supply a valid list of nodes", 400
-
-    for node in nodes:
-        blockchain.register_node(node)
-
-    response = {
-        'message': 'New nodes have been added',
-        'total_nodes': list(blockchain.nodes),
-    }
-    return jsonify(response), 201
-
-
-@app.route('/nodes/resolve', methods=['GET'])
-def consensus():
-    replaced = blockchain.resolve_conflicts()
-
-    if replaced:
-        response = {
-            'message': 'Our chain was replaced',
-            'new_chain': blockchain.chain
-        }
-    else:
-        response = {
-            'message': 'Our chain is authoritative',
-            'chain': blockchain.chain
-        }
-
-    return jsonify(response), 200
-
-
 if __name__ == '__main__':
-    port = 5000 if len(sys.argv) == 1 else int(sys.argv[1])
+    if len(sys.argv) == 2:
+        port = int(sys.argv[1])
+    db_folder = f'db-{port}'
+
+
+    # 实例化区块链
+    blockchain = BlockChain()
+
+    # 实例化结点
+    app = Flask(__name__)
+
+    @app.route('/chain', methods=['GET'])
+    def full_chain():
+        response = {
+            'chain': blockchain.chain,
+            'length': len(blockchain.chain),
+        }
+        return jsonify(response), 200
+
+
+    @app.route('/transactions/new', methods=['POST'])
+    def new_transaction():
+        values = request.get_json()
+
+        # 检查要求的域是否都有
+        required = ['sender', 'recipient', 'amount']
+        if not all(k in values for k in required):
+            return 'Missing values', 400
+
+        # 创建一个新交易
+        index = blockchain.new_transaction(
+            values['sender'], values['recipient'], values['amount'])
+
+        response = {'message': f'Transaction will be added to Block {index}'}
+        return jsonify(response), 201
+
+
+    @app.route('/mine', methods=['GET'])
+    def mine():
+        # 我们需要运行工作量证明算法来得到下一个工作量证明
+        last_block = blockchain.last_block
+        last_proof = last_block['proof']
+        proof = blockchain.proof_of_work(last_proof)
+
+        # 我们必须为找到工作量证明获得奖励
+        # sender 为 '0' 表示该结点已经挖到了一个新的币
+        blockchain.new_transaction(
+            sender='0',
+            recipient=node_identifier,
+            amount=1,
+        )
+
+        block = blockchain.new_block(proof)
+
+        response = {
+            'message': 'New Block Forged',
+            'index': block['index'],
+            'transactions': block['transactions'],
+            'proof': block['proof'],
+            'previous_hash': block['previous_hash'],
+        }
+        return jsonify(response), 200
+
+
+    @app.route('/nodes/register', methods=['POST'])
+    def register_nodes():
+        values = request.get_json()
+
+        nodes = values.get('nodes')
+        if nodes is None:
+            return "Error: Please supply a valid list of nodes", 400
+
+        for node in nodes:
+            blockchain.register_node(node)
+
+        response = {
+            'message': 'New nodes have been added',
+            'total_nodes': list(blockchain.nodes),
+        }
+        return jsonify(response), 201
+
+
+    @app.route('/nodes/resolve', methods=['GET'])
+    def consensus():
+        replaced = blockchain.resolve_conflicts()
+
+        if replaced:
+            response = {
+                'message': 'Our chain was replaced',
+                'new_chain': blockchain.chain
+            }
+        else:
+            response = {
+                'message': 'Our chain is authoritative',
+                'chain': blockchain.chain
+            }
+
+        return jsonify(response), 200
+
+
     app.run(host='0.0.0.0', port=port)
