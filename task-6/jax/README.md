@@ -17,39 +17,42 @@
 2. mine.sh:  
     ```bash
     # 用 localhost:port 挖一个区块
-    .\mine.sh <port>
+    .\mine.sh [port]
     ```
 
 3. new_transaction.sh:  
     ```bash
     # 在 localhost:port 创建一笔新的交易
-    .\new_transaction.sh <port>
+    .\new_transaction.sh [port]
     ```
 
 4. register.sh:  
     ```bash
     # 在 localhost:server_port 上登记 localhost:neighbour_port
-    .\register.sh <neighbour_port> <server_port>
+    .\register.sh [neighbour_port] [server_port]
     ```
 
 5. resolve.sh:  
     ```bash
     # 为结点 localhost:port 解决冲突
     # 也就是用所在网络里的所有结点的最长有效区块链更新自身
-    .\resolve.sh <port>
+    .\resolve.sh [port]
     ```
 
 ### 2. 查看区块链
 
-一个结点的区块链可以通过浏览器访问 `node/chain` 获取，例如：`localhost:5000/chain`。  
+1. 一个结点的区块链可以通过浏览器访问 `node/chain` 获取，例如：`localhost:5000/chain`。  
 
-也可以通过 `cURL` 获取：  
+2. 也可以通过 `cURL` 获取：  
 ```bash
 curl "localhost:5000/chain"
 
 # 示例输出
 {"chain":[{"index":1,"previous_hash":1,"proof":100,"timestamp":1619015964.2798216,"transactions":[]}],"length":1}
 ```
+
+3. 还可以通过直接通过文件查看.  
+
 
 ## 完整参考
 [从零到一用 Python 写一个区块链](https://juejin.cn/post/6844903508060143630#heading-13)
